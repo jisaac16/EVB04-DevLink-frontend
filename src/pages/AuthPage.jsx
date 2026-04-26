@@ -1,0 +1,151 @@
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
+
+const TECHNOLOGIES = ['React', 'Python', 'Django', 'JavaScript', 'HTML']
+
+function Logo({ className = '' }) {
+  return (
+    <span className={`font-bold text-blue-600 ${className}`}>
+      CodefF@ctory
+    </span>
+  )
+}
+
+function LoginForm({ onSwitch }) {
+  const [email, setEmail] = useState('')
+
+  return (
+    <div className="flex flex-col items-center justify-center h-full px-10 py-12 gap-6">
+      <Logo className="text-4xl" />
+      <div className="w-full max-w-xs flex flex-col gap-4">
+        <div className="relative">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+            ✉
+          </span>
+          <input
+            type="email"
+            placeholder="Iniciar sesión"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            className="w-full border border-gray-300 rounded-md py-2 pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        <button className="w-full bg-blue-600 text-white rounded-md py-2 text-sm font-medium hover:bg-blue-700 transition-colors">
+          Iniciar sesión
+        </button>
+      </div>
+      <p className="text-sm text-gray-500">
+        ¿No tienes cuenta?{' '}
+        <button onClick={onSwitch} className="text-blue-600 hover:underline font-medium">
+          Registrarse
+        </button>
+      </p>
+    </div>
+  )
+}
+
+function RegisterForm({ onSwitch }) {
+  const [selected, setSelected] = useState([])
+  const [form, setForm] = useState({ name: '', email: '', password: '' })
+
+  function toggleTech(tech) {
+    setSelected(prev =>
+      prev.includes(tech) ? prev.filter(t => t !== tech) : [...prev, tech]
+    )
+  }
+
+  return (
+    <div className="flex flex-col justify-center h-full px-10 py-12 gap-5">
+      <h2 className="text-2xl font-semibold text-gray-800">Login</h2>
+      <div className="flex flex-col gap-3">
+        <div className="relative">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">👤</span>
+          <input
+            type="text"
+            placeholder="Nombre"
+            value={form.name}
+            onChange={e => setForm({ ...form, name: e.target.value })}
+            className="w-full border border-gray-300 rounded-md py-2 pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        <div className="relative">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">📁</span>
+          <input
+            type="email"
+            placeholder="Correo"
+            value={form.email}
+            onChange={e => setForm({ ...form, email: e.target.value })}
+            className="w-full border border-gray-300 rounded-md py-2 pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        <div className="relative">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">🔒</span>
+          <input
+            type="password"
+            placeholder="Contraseña"
+            value={form.password}
+            onChange={e => setForm({ ...form, password: e.target.value })}
+            className="w-full border border-gray-300 rounded-md py-2 pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        {TECHNOLOGIES.map(tech => (
+          <button
+            key={tech}
+            onClick={() => toggleTech(tech)}
+            className={`px-3 py-1 rounded-full text-xs border font-medium transition-colors ${
+              selected.includes(tech)
+                ? 'bg-blue-600 text-white border-blue-600'
+                : 'bg-white text-gray-600 border-gray-300 hover:border-blue-400'
+            }`}
+          >
+            {tech}
+          </button>
+        ))}
+      </div>
+
+      <button className="w-full bg-blue-600 text-white rounded-md py-2 text-sm font-medium hover:bg-blue-700 transition-colors">
+        Crear cuenta
+      </button>
+
+      <p className="text-sm text-gray-500 text-center">
+        ¿Ya tienes cuenta?{' '}
+        <button onClick={onSwitch} className="text-blue-600 hover:underline font-medium">
+          Iniciar sesión
+        </button>
+      </p>
+    </div>
+  )
+}
+
+export default function AuthPage() {
+  const [view, setView] = useState('login')
+
+  return (
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="bg-white rounded-2xl shadow-lg w-full max-w-2xl flex overflow-hidden min-h-[420px]">
+        {view === 'login' ? (
+          <>
+            <div className="w-1/2 border-r border-gray-100">
+              <LoginForm onSwitch={() => setView('register')} />
+            </div>
+            <div className="w-1/2 bg-gray-50 flex items-center justify-center">
+              <Logo className="text-3xl opacity-20" />
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="w-1/2 bg-gray-50 flex items-center justify-center">
+              <Logo className="text-3xl opacity-20" />
+            </div>
+            <div className="w-1/2 border-l border-gray-100">
+              <RegisterForm onSwitch={() => setView('login')} />
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
