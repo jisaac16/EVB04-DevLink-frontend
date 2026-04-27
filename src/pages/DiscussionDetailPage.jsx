@@ -12,8 +12,29 @@ function Avatar({ name }) {
   )
 }
 
-function CommentItem({ comment, currentUserId, onDelete }) {
+function CommentItem({ comment, currentUserId, onDelete, onEdit }) {
   const isOwner = comment.authorId === currentUserId
+  const [editing, setEditing] = useState(false)
+  const [editContent, setEditContent] = useState(comment.content)
+  const [saving, setSaving] = useState(false)
+
+  async function handleSave() {
+    if (!editContent.trim()) return
+    setSaving(true)
+    try {
+      await onEdit(comment.id, editContent)
+      setEditing(false)
+    } catch (err) {
+      alert(err.message || 'Error al editar')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  function handleCancel() {
+    setEditContent(comment.content)
+    setEditing(false)
+  }
 
   return (
     <div className="flex gap-3 py-3 border-b border-gray-100 last:border-0">
@@ -24,16 +45,50 @@ function CommentItem({ comment, currentUserId, onDelete }) {
           <span className="text-xs text-gray-400">
             {new Date(comment.createdAt).toLocaleString()}
           </span>
-          {isOwner && (
-            <button
-              onClick={() => onDelete(comment.id)}
-              className="text-xs text-red-400 hover:text-red-600 ml-auto"
-            >
-              Eliminar
-            </button>
+          {isOwner && !editing && (
+            <div className="flex gap-2 ml-auto">
+              <button
+                onClick={() => setEditing(true)}
+                className="text-xs text-blue-500 hover:text-blue-700"
+              >
+                Editar
+              </button>
+              <button
+                onClick={() => onDelete(comment.id)}
+                className="text-xs text-red-400 hover:text-red-600"
+              >
+                Eliminar
+              </button>
+            </div>
           )}
         </div>
-        <p className="text-sm text-gray-600">{comment.content}</p>
+        {editing ? (
+          <div className="flex flex-col gap-2 mt-1">
+            <textarea
+              value={editContent}
+              onChange={e => setEditContent(e.target.value)}
+              rows={2}
+              className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="px-3 py-1 bg-blue-600 text-white text-xs font-medium rounded-md hover:bg-blue-700 disabled:opacity-50"
+              >
+                {saving ? 'Guardando...' : 'Guardar'}
+              </button>
+              <button
+                onClick={handleCancel}
+                className="px-3 py-1 border border-gray-300 text-gray-600 text-xs font-medium rounded-md hover:bg-gray-50"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        ) : (
+          <p className="text-sm text-gray-600">{comment.content}</p>
+        )}
       </div>
     </div>
   )
@@ -85,6 +140,11 @@ export default function DiscussionDetailPage() {
     } catch (err) {
       setError(err.message || 'Error al eliminar comentario')
     }
+  }
+
+  async function handleEditComment(commentId, content) {
+    const updated = await api.put(`/comments/${commentId}`, { content })
+    setComments(prev => prev.map(c => c.id === commentId ? updated : c))
   }
 
   if (discussion === null) {
@@ -151,6 +211,7 @@ export default function DiscussionDetailPage() {
                     comment={c}
                     currentUserId={user?.id}
                     onDelete={handleDeleteComment}
+                    onEdit={handleEditComment}
                   />
                 ))
               ) : (
