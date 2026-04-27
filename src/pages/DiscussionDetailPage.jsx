@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
+import MessageButton from '../components/MessageButton'
 import { api } from '../services/api'
 import { useAuth } from '../hooks/useAuth'
 
@@ -46,6 +47,7 @@ function CommentItem({ comment, currentUserId, onDelete, onEdit }) {
           <span className="text-xs text-gray-400">
             {new Date(comment.createdAt).toLocaleString()}
           </span>
+          {!isOwner && <MessageButton userId={comment.authorId} userName={comment.authorName} />}
           {isOwner && !editing && (
             <div className="relative ml-auto">
               <button
@@ -325,6 +327,9 @@ export default function DiscussionDetailPage() {
                 <div className="flex items-center gap-3 text-xs text-gray-400 mb-3">
                   <span>{discussion.authorName}</span>
                   <span>{new Date(discussion.createdAt).toLocaleString()}</span>
+                  {discussion.authorId !== user?.id && (
+                    <MessageButton userId={discussion.authorId} userName={discussion.authorName} />
+                  )}
                 </div>
                 <p className="text-sm text-gray-600 whitespace-pre-wrap mb-3">{discussion.content}</p>
                 <div className="flex gap-1.5 flex-wrap">

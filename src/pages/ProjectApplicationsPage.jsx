@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
+import MessageButton from '../components/MessageButton'
 import { api } from '../services/api'
 
 const STATUS_LABELS = {
@@ -125,6 +126,9 @@ export default function ProjectApplicationsPage() {
                           GitHub
                         </a>
                       )}
+                      <div className="mt-1">
+                        <MessageButton userId={app.applicantId} userName={app.applicantName} />
+                      </div>
                       {app.status === 'PENDING' && (
                         <div className="flex gap-2 mt-2">
                           <button

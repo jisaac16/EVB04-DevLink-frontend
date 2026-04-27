@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Sidebar from '../components/Sidebar'
+import MessageButton from '../components/MessageButton'
 import { api } from '../services/api'
 import { useAuth } from '../hooks/useAuth'
 
@@ -172,6 +173,7 @@ export default function ProjectDetailPage() {
                     <div>
                       <p className="text-sm font-semibold text-gray-800">{project.creatorName}</p>
                       <p className="text-xs text-gray-400">Creador</p>
+                      {!isOwner && <MessageButton userId={project.creatorId} userName={project.creatorName} />}
                     </div>
                   </div>
                   {collaborators.length > 0 ? (
@@ -192,6 +194,7 @@ export default function ProjectDetailPage() {
                                 </span>
                               ))}
                             </div>
+                            {!isOwner && <div className="mt-1"><MessageButton userId={c.applicantId} userName={c.applicantName} /></div>}
                           </div>
                         </div>
                       ))}
