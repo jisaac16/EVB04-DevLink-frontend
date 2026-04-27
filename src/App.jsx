@@ -9,6 +9,7 @@ import DiscussionsPage from './pages/DiscussionsPage'
 import CreateDiscussionPage from './pages/CreateDiscussionPage'
 import DiscussionDetailPage from './pages/DiscussionDetailPage'
 import ProfilePage from './pages/ProfilePage'
+import MessagesPage from './pages/MessagesPage'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -59,6 +60,7 @@ function App() {
           <Route path="/discusiones/nueva" element={<ProtectedRoute><CreateDiscussionPage /></ProtectedRoute>} />
           <Route path="/discusiones/:id" element={<ProtectedRoute><DiscussionDetailPage /></ProtectedRoute>} />
           <Route path="/perfil" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+          <Route path="/mensajes" element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </AuthProvider>
