@@ -1,19 +1,59 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { AuthProvider } from './contexts/AuthProvider'
+import { useAuth } from './hooks/useAuth'
 import AuthPage from './pages/AuthPage'
 import HomePage from './pages/HomePage'
 import CreateProjectPage from './pages/CreateProjectPage'
 import ProjectDetailPage from './pages/ProjectDetailPage'
 
+function ProtectedRoute({ children }) {
+  const { user, loading } = useAuth()
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <p className="text-gray-500">Cargando...</p>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />
+  }
+
+  return children
+}
+
+function PublicRoute({ children }) {
+  const { user, loading } = useAuth()
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <p className="text-gray-500">Cargando...</p>
+      </div>
+    )
+  }
+
+  if (user) {
+    return <Navigate to="/home" replace />
+  }
+
+  return children
+}
+
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<AuthPage />} />
-        <Route path="/home" element={<HomePage />} />
-        <Route path="/proyectos/nuevo" element={<CreateProjectPage />} />
-        <Route path="/proyectos/:id" element={<ProjectDetailPage />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
+      <AuthProvider>
+        <Routes>
+          <Route path="/login" element={<PublicRoute><AuthPage /></PublicRoute>} />
+          <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+          <Route path="/proyectos/nuevo" element={<ProtectedRoute><CreateProjectPage /></ProtectedRoute>} />
+          <Route path="/proyectos/:id" element={<ProtectedRoute><ProjectDetailPage /></ProtectedRoute>} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </AuthProvider>
     </BrowserRouter>
   )
 }
