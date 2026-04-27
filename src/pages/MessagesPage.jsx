@@ -135,10 +135,12 @@ export default function MessagesPage() {
     function loadMessages() {
       api.get(`/messages/conversations/${userId}`)
         .then(data => {
-          const msgs = (data.content || []).map(m => ({
-            ...m,
-            isMine: m.senderId === currentUserId,
-          }))
+          const msgs = (data.content || [])
+            .map(m => ({
+              ...m,
+              isMine: m.senderId === currentUserId,
+            }))
+            .reverse()
           setMessages(msgs)
         })
         .catch(() => {})
