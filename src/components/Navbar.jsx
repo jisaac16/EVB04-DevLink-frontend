@@ -48,7 +48,7 @@ export default function Navbar() {
         >
           + Nuevo proyecto
         </Link>
-        <button className="text-gray-400 hover:text-gray-600 text-lg">🔔</button>
+        <Link to="/notificaciones" className="text-gray-400 hover:text-gray-600 text-lg">🔔</Link>
         <Link to="/mensajes" className="text-gray-400 hover:text-gray-600 text-lg">✉</Link>
         <Link to="/perfil" className="w-8 h-8 rounded-full bg-blue-200 flex items-center justify-center text-blue-700 text-sm font-bold">
           U
