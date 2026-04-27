@@ -1,30 +1,20 @@
-import { useState, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { api } from '../services/api'
 import { AuthContext } from './AuthContext'
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(() => !!localStorage.getItem('token'))
 
-  const checkAuth = useCallback(async () => {
+  useEffect(() => {
     const token = localStorage.getItem('token')
-    if (!token) {
-      setLoading(false)
-      return
-    }
-    try {
-      const userData = await api.get('/users/me')
-      setUser(userData)
-    } catch {
-      localStorage.removeItem('token')
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+    if (!token) return
 
-  useState(() => {
-    checkAuth()
-  })
+    api.get('/users/me')
+      .then(setUser)
+      .catch(() => localStorage.removeItem('token'))
+      .finally(() => setLoading(false))
+  }, [])
 
   async function login(email, password) {
     const data = await api.post('/auth/login', { email, password })
