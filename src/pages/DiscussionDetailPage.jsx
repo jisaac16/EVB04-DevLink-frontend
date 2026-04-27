@@ -43,9 +43,8 @@ export default function DiscussionDetailPage() {
   const { id } = useParams()
   const { user } = useAuth()
   const [discussion, setDiscussion] = useState(null)
-  const [comments, setComments] = useState([])
+  const [comments, setComments] = useState(null)
   const [newComment, setNewComment] = useState('')
-  const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [sending, setSending] = useState(false)
 
@@ -59,7 +58,6 @@ export default function DiscussionDetailPage() {
         setComments(comms)
       })
       .catch(() => setError('No se pudo cargar la discusión'))
-      .finally(() => setLoading(false))
   }, [id])
 
   async function handleAddComment(e) {
@@ -89,7 +87,7 @@ export default function DiscussionDetailPage() {
     }
   }
 
-  if (loading) {
+  if (discussion === null) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col">
         <Navbar />
@@ -138,21 +136,24 @@ export default function DiscussionDetailPage() {
 
           <div className="bg-white rounded-xl shadow-sm px-6 py-5">
             <h2 className="text-sm font-semibold text-gray-700 mb-3">
-              Comentarios ({comments.length})
+              Comentarios ({comments?.length ?? 0})
             </h2>
 
             {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
 
             <div className="flex flex-col">
-              {comments.map(c => (
-                <CommentItem
-                  key={c.id}
-                  comment={c}
-                  currentUserId={user?.id}
-                  onDelete={handleDeleteComment}
-                />
-              ))}
-              {comments.length === 0 && (
+              {comments === null ? (
+                <p className="py-4 text-center text-sm text-gray-400">Cargando comentarios...</p>
+              ) : comments.length > 0 ? (
+                comments.map(c => (
+                  <CommentItem
+                    key={c.id}
+                    comment={c}
+                    currentUserId={user?.id}
+                    onDelete={handleDeleteComment}
+                  />
+                ))
+              ) : (
                 <p className="py-4 text-center text-sm text-gray-400">Sin comentarios aún.</p>
               )}
             </div>
