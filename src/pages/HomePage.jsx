@@ -78,6 +78,7 @@ export default function HomePage() {
   const [projects, setProjects] = useState([])
   const [totalPages, setTotalPages] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const mountedRef = useRef(true)
 
   useEffect(() => {
@@ -94,14 +95,19 @@ export default function HomePage() {
 
     api.get(`/projects?${params.toString()}`)
       .then(data => {
+        console.log('API /projects response:', data)
         if (!cancelled && mountedRef.current) {
           setProjects(data.content || [])
           setTotalPages(data.totalPages || 0)
+          setError('')
         }
       })
       .catch(err => {
         console.error('Error al cargar proyectos:', err)
-        if (!cancelled) setProjects([])
+        if (!cancelled) {
+          setProjects([])
+          setError(err.message || 'Error al cargar proyectos')
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
@@ -151,6 +157,8 @@ export default function HomePage() {
           <div className="bg-white rounded-xl shadow-sm px-6">
             {loading ? (
               <p className="py-8 text-center text-sm text-gray-400">Cargando...</p>
+            ) : error ? (
+              <p className="py-8 text-center text-sm text-red-500">{error}</p>
             ) : filtered.length > 0 ? (
               filtered.map(project => (
                 <ProjectCard key={project.id} project={project} />
