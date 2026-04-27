@@ -29,6 +29,9 @@ export default function ProjectDetailPage() {
   const [project, setProject] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [applying, setApplying] = useState(false)
+  const [applied, setApplied] = useState(false)
+  const [applyMessage, setApplyMessage] = useState('')
 
   useEffect(() => {
     api.get(`/projects/${id}`)
@@ -36,6 +39,20 @@ export default function ProjectDetailPage() {
       .catch(() => setError('No se pudo cargar el proyecto'))
       .finally(() => setLoading(false))
   }, [id])
+
+  async function handleApply() {
+    setApplying(true)
+    setApplyMessage('')
+    try {
+      const res = await api.post(`/projects/${id}/apply`)
+      setApplied(true)
+      setApplyMessage(res.message || 'Postulación enviada correctamente')
+    } catch (err) {
+      setApplyMessage(err.message || 'Error al postularse')
+    } finally {
+      setApplying(false)
+    }
+  }
 
   if (loading) {
     return (
@@ -87,14 +104,28 @@ export default function ProjectDetailPage() {
                   </button>
                 ))}
               </div>
-              {project.canApply && (
-                <button className="bg-blue-600 text-white text-sm font-medium px-4 py-1.5 rounded-md hover:bg-blue-700 transition-colors">
-                  Postularme
+              {project.canApply && !applied && (
+                <button
+                  onClick={handleApply}
+                  disabled={applying}
+                  className="bg-blue-600 text-white text-sm font-medium px-4 py-1.5 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
+                >
+                  {applying ? 'Postulando...' : 'Postularme'}
                 </button>
+              )}
+              {applied && (
+                <span className="px-3 py-1 bg-green-50 border border-green-300 text-green-700 text-xs font-medium rounded-full">
+                  Postulado
+                </span>
               )}
             </div>
 
             <div className="px-6 py-5 flex flex-col gap-4">
+              {applyMessage && (
+                <p className={`text-sm ${applied ? 'text-green-600' : 'text-red-500'}`}>
+                  {applyMessage}
+                </p>
+              )}
               <div className="flex items-start justify-between">
                 <div className="flex flex-col gap-2">
                   <h2 className="text-lg font-bold text-gray-800">{project.title}</h2>
