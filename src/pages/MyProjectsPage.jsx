@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Sidebar from '../components/Sidebar'
@@ -89,50 +89,28 @@ function Pagination({ page, totalPages, onPage }) {
 export default function MyProjectsPage() {
   const [selectedTechId, setSelectedTechId] = useState(null)
   const [page, setPage] = useState(0)
-  const [projects, setProjects] = useState([])
+  const [projects, setProjects] = useState(null)
   const [totalPages, setTotalPages] = useState(0)
-  const [loading, setLoading] = useState(true)
-  const mountedRef = useRef(true)
 
   useEffect(() => {
-    return () => { mountedRef.current = false }
-  }, [])
-
-  useEffect(() => {
-    let cancelled = false
-
     const params = new URLSearchParams()
     if (selectedTechId) params.append('technologyIds', selectedTechId)
     params.append('page', page)
     params.append('size', ITEMS_PER_PAGE)
 
-    api.get(`/projects/all?${params.toString()}`)
+    api.get(`/projects/my?${params.toString()}`)
       .then(data => {
-        if (!cancelled && mountedRef.current) {
-          setProjects(data.content || [])
-          setTotalPages(data.totalPages || 0)
-          setLoading(false)
-        }
+        setProjects(data.content || [])
+        setTotalPages(data.totalPages || 0)
       })
       .catch(() => {
-        if (!cancelled) {
-          setProjects([])
-          setLoading(false)
-        }
+        setProjects([])
       })
-
-    return () => { cancelled = true }
   }, [selectedTechId, page])
 
   function handleSelectTech(id) {
     setSelectedTechId(prev => (prev === id ? null : id))
     setPage(0)
-    setLoading(true)
-  }
-
-  function handlePageChange(fn) {
-    setPage(fn)
-    setLoading(true)
   }
 
   return (
@@ -153,7 +131,7 @@ export default function MyProjectsPage() {
           </div>
 
           <div className="bg-white rounded-xl shadow-sm px-6">
-            {loading ? (
+            {projects === null ? (
               <p className="py-8 text-center text-sm text-gray-400">Cargando...</p>
             ) : projects.length > 0 ? (
               projects.map(project => (
@@ -164,7 +142,7 @@ export default function MyProjectsPage() {
             )}
           </div>
 
-          <Pagination page={page} totalPages={totalPages} onPage={handlePageChange} />
+          <Pagination page={page} totalPages={totalPages} onPage={setPage} />
         </main>
       </div>
     </div>
