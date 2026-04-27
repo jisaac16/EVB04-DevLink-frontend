@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Navbar from '../components/Navbar'
 import { api } from '../services/api'
 import { useAuth } from '../hooks/useAuth'
@@ -44,7 +44,13 @@ function ConversationList({ conversations, selectedId, onSelect }) {
   )
 }
 
-function ChatView({ conversation, messages, onSend, newMessage, setNewMessage, sending, user }) {
+function ChatView({ conversation, messages, onSend, newMessage, setNewMessage, sending }) {
+  const bottomRef = useRef(null)
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
+
   return (
     <div className="flex flex-col h-full">
       <div className="px-4 py-3 border-b border-gray-200">
@@ -58,16 +64,16 @@ function ChatView({ conversation, messages, onSend, newMessage, setNewMessage, s
         {messages.map(msg => (
           <div
             key={msg.id}
-            className={`flex ${msg.senderId === user?.id ? 'justify-end' : 'justify-start'}`}
+            className={`flex ${msg.isMine ? 'justify-end' : 'justify-start'}`}
           >
             <div className={`max-w-[70%] px-3 py-2 rounded-lg text-sm ${
-              msg.senderId === user?.id
+              msg.isMine
                 ? 'bg-blue-600 text-white'
                 : 'bg-gray-100 text-gray-800'
             }`}>
               {msg.content}
               <span className={`block text-xs mt-1 ${
-                msg.senderId === user?.id ? 'text-blue-200' : 'text-gray-400'
+                msg.isMine ? 'text-blue-200' : 'text-gray-400'
               }`}>
                 {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </span>
@@ -77,6 +83,7 @@ function ChatView({ conversation, messages, onSend, newMessage, setNewMessage, s
         {messages.length === 0 && (
           <p className="text-center text-sm text-gray-400 py-4">Inicia la conversación.</p>
         )}
+        <div ref={bottomRef} />
       </div>
 
       <form onSubmit={onSend} className="px-4 py-3 border-t border-gray-200 flex gap-2">
@@ -107,21 +114,40 @@ export default function MessagesPage() {
   const [newMessage, setNewMessage] = useState('')
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
-  const [error, setError] = useState('')
 
   useEffect(() => {
-    api.get('/messages/conversations')
-      .then(setConversations)
-      .catch(() => {})
-      .finally(() => setLoading(false))
+    function load() {
+      api.get('/messages/conversations')
+        .then(setConversations)
+        .catch(() => {})
+        .finally(() => setLoading(false))
+    }
+    load()
+    const interval = setInterval(load, 5000)
+    return () => clearInterval(interval)
   }, [])
 
   useEffect(() => {
     if (!selected) return
-    api.get(`/messages/conversations/${selected.userId}`)
-      .then(data => setMessages(data.content || []))
-      .catch(() => {})
-  }, [selected])
+    const currentUserId = user?.id
+    const userId = selected.userId
+
+    function loadMessages() {
+      api.get(`/messages/conversations/${userId}`)
+        .then(data => {
+          const msgs = (data.content || []).map(m => ({
+            ...m,
+            isMine: m.senderId === currentUserId,
+          }))
+          setMessages(msgs)
+        })
+        .catch(() => {})
+    }
+
+    loadMessages()
+    const interval = setInterval(loadMessages, 3000)
+    return () => clearInterval(interval)
+  }, [selected, user?.id])
 
   async function handleSend(e) {
     e.preventDefault()
@@ -131,12 +157,13 @@ export default function MessagesPage() {
     try {
       const msg = await api.post('/messages', {
         receiverId: selected.userId,
-        content: newMessage,
+        content: newMessage.trim(),
       })
-      setMessages(prev => [...prev, msg])
+      setMessages(prev => [...prev, { ...msg, isMine: true }])
       setNewMessage('')
+      api.get('/messages/conversations').then(setConversations).catch(() => {})
     } catch (err) {
-      setError(err.message || 'Error al enviar mensaje')
+      alert(err.message || 'Error al enviar')
     } finally {
       setSending(false)
     }
@@ -163,18 +190,14 @@ export default function MessagesPage() {
 
         <div className="flex-1 bg-white rounded-r-xl shadow-sm overflow-hidden">
           {selected ? (
-            <>
-              {error && <p className="text-red-500 text-xs px-4 pt-2">{error}</p>}
-              <ChatView
+            <ChatView
               conversation={selected}
               messages={messages}
               onSend={handleSend}
               newMessage={newMessage}
               setNewMessage={setNewMessage}
               sending={sending}
-              user={user}
             />
-            </>
           ) : (
             <div className="flex items-center justify-center h-full">
               <p className="text-gray-400 text-sm">Selecciona una conversación</p>
