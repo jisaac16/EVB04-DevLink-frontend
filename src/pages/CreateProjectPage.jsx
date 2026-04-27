@@ -26,6 +26,8 @@ export default function CreateProjectPage() {
   const [form, setForm] = useState({ title: '', description: '' })
   const [technologies, setTechnologies] = useState([])
   const [selectedTechIds, setSelectedTechIds] = useState([])
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     api.get('/technologies').then(setTechnologies).catch(() => {})
@@ -37,9 +39,54 @@ export default function CreateProjectPage() {
     )
   }
 
-  function handlePublish(e) {
+  function validate() {
+    if (!form.title.trim()) return 'El título es obligatorio'
+    if (!form.description.trim()) return 'La descripción es obligatoria'
+    if (selectedTechIds.length === 0) return 'Selecciona al menos una tecnología'
+    return null
+  }
+
+  async function handleSaveDraft(e) {
     e.preventDefault()
-    navigate('/home')
+    setError('')
+    const validationError = validate()
+    if (validationError) { setError(validationError); return }
+
+    setLoading(true)
+    try {
+      await api.post('/projects', {
+        title: form.title,
+        description: form.description,
+        technologyIds: selectedTechIds,
+      })
+      navigate('/home')
+    } catch (err) {
+      setError(err.message || 'Error al guardar borrador')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function handlePublish(e) {
+    e.preventDefault()
+    setError('')
+    const validationError = validate()
+    if (validationError) { setError(validationError); return }
+
+    setLoading(true)
+    try {
+      const project = await api.post('/projects', {
+        title: form.title,
+        description: form.description,
+        technologyIds: selectedTechIds,
+      })
+      await api.put(`/projects/${project.id}/publish`)
+      navigate('/home')
+    } catch (err) {
+      setError(err.message || 'Error al publicar proyecto')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -60,7 +107,6 @@ export default function CreateProjectPage() {
           </div>
 
           <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-            {/* Tabs */}
             <div className="border-b border-gray-200 px-6">
               <div className="flex gap-6">
                 <button className="flex items-center gap-1.5 text-sm font-medium text-blue-600 border-b-2 border-blue-600 py-3">
@@ -72,8 +118,11 @@ export default function CreateProjectPage() {
               </div>
             </div>
 
-            {/* Form */}
-            <form onSubmit={handlePublish} className="px-6 py-6 flex flex-col gap-5">
+            <form className="px-6 py-6 flex flex-col gap-5">
+              {error && (
+                <p className="text-red-500 text-sm">{error}</p>
+              )}
+
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-medium text-gray-700">
                   Título del Proyecto
@@ -83,6 +132,7 @@ export default function CreateProjectPage() {
                   placeholder="Título del Proyecto"
                   value={form.title}
                   onChange={e => setForm({ ...form, title: e.target.value })}
+                  required
                   className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -93,6 +143,7 @@ export default function CreateProjectPage() {
                   value={form.description}
                   onChange={e => setForm({ ...form, description: e.target.value })}
                   rows={4}
+                  required
                   className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                 />
               </div>
@@ -111,16 +162,19 @@ export default function CreateProjectPage() {
               <div className="flex justify-end gap-3 pt-2">
                 <button
                   type="button"
-                  onClick={() => navigate('/home')}
-                  className="px-5 py-2 border border-gray-300 text-gray-600 text-sm font-medium rounded-md hover:bg-gray-50 transition-colors"
+                  onClick={handleSaveDraft}
+                  disabled={loading}
+                  className="px-5 py-2 border border-gray-300 text-gray-600 text-sm font-medium rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
                 >
-                  Guardar borrador
+                  {loading ? 'Guardando...' : 'Guardar borrador'}
                 </button>
                 <button
-                  type="submit"
-                  className="px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+                  type="button"
+                  onClick={handlePublish}
+                  disabled={loading}
+                  className="px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
                 >
-                  Publicar
+                  {loading ? 'Publicando...' : 'Publicar'}
                 </button>
               </div>
             </form>
