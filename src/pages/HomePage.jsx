@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Sidebar from '../components/Sidebar'
@@ -75,18 +75,10 @@ export default function HomePage() {
   const [selectedTechId, setSelectedTechId] = useState(null)
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(0)
-  const [projects, setProjects] = useState([])
+  const [projects, setProjects] = useState(null)
   const [totalPages, setTotalPages] = useState(0)
-  const [loading, setLoading] = useState(true)
-  const mountedRef = useRef(true)
 
   useEffect(() => {
-    return () => { mountedRef.current = false }
-  }, [])
-
-  useEffect(() => {
-    let cancelled = false
-
     const params = new URLSearchParams()
     if (selectedTechId) params.append('technologyIds', selectedTechId)
     params.append('page', page)
@@ -94,26 +86,17 @@ export default function HomePage() {
 
     api.get(`/projects?${params.toString()}`)
       .then(data => {
-        if (!cancelled && mountedRef.current) {
-          setProjects(data.content || [])
-          setTotalPages(data.totalPages || 0)
-          setLoading(false)
-        }
+        setProjects(data.content || [])
+        setTotalPages(data.totalPages || 0)
       })
       .catch(() => {
-        if (!cancelled) {
-          setProjects([])
-          setLoading(false)
-        }
+        setProjects([])
       })
-
-    return () => { cancelled = true }
   }, [selectedTechId, page])
 
   function handleSelectTech(id) {
     setSelectedTechId(prev => (prev === id ? null : id))
     setPage(0)
-    setLoading(true)
   }
 
   function handleSearchChange(e) {
@@ -121,14 +104,9 @@ export default function HomePage() {
     setPage(0)
   }
 
-  function handlePageChange(fn) {
-    setPage(fn)
-    setLoading(true)
-  }
-
   const filtered = search
-    ? projects.filter(p => p.title.toLowerCase().includes(search.toLowerCase()))
-    : projects
+    ? (projects || []).filter(p => p.title.toLowerCase().includes(search.toLowerCase()))
+    : (projects || [])
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -149,7 +127,7 @@ export default function HomePage() {
           </div>
 
           <div className="bg-white rounded-xl shadow-sm px-6">
-            {loading ? (
+            {projects === null ? (
               <p className="py-8 text-center text-sm text-gray-400">Cargando...</p>
             ) : filtered.length > 0 ? (
               filtered.map(project => (
@@ -160,7 +138,7 @@ export default function HomePage() {
             )}
           </div>
 
-          <Pagination page={page} totalPages={totalPages} onPage={handlePageChange} />
+          <Pagination page={page} totalPages={totalPages} onPage={setPage} />
         </main>
       </div>
     </div>
