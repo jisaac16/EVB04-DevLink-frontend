@@ -17,6 +17,7 @@ function CommentItem({ comment, currentUserId, onDelete, onEdit }) {
   const [editing, setEditing] = useState(false)
   const [editContent, setEditContent] = useState(comment.content)
   const [saving, setSaving] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
 
   async function handleSave() {
     if (!editContent.trim()) return
@@ -46,19 +47,29 @@ function CommentItem({ comment, currentUserId, onDelete, onEdit }) {
             {new Date(comment.createdAt).toLocaleString()}
           </span>
           {isOwner && !editing && (
-            <div className="flex gap-2 ml-auto">
+            <div className="relative ml-auto">
               <button
-                onClick={() => setEditing(true)}
-                className="text-xs text-blue-500 hover:text-blue-700"
+                onClick={() => setMenuOpen(prev => !prev)}
+                className="text-gray-400 hover:text-gray-600 px-1"
               >
-                Editar
+                ⋮
               </button>
-              <button
-                onClick={() => onDelete(comment.id)}
-                className="text-xs text-red-400 hover:text-red-600"
-              >
-                Eliminar
-              </button>
+              {menuOpen && (
+                <div className="absolute right-0 top-6 bg-white border border-gray-200 rounded-md shadow-sm z-10 min-w-[100px]">
+                  <button
+                    onClick={() => { setEditing(true); setMenuOpen(false) }}
+                    className="block w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    onClick={() => { onDelete(comment.id); setMenuOpen(false) }}
+                    className="block w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-100"
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -74,7 +85,7 @@ function CommentItem({ comment, currentUserId, onDelete, onEdit }) {
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="px-3 py-1 bg-blue-600 text-white text-xs font-medium rounded-md hover:bg-blue-700 disabled:opacity-50"
+                className="px-3 py-1 bg-gray-800 text-white text-xs font-medium rounded-md hover:bg-gray-900 disabled:opacity-50"
               >
                 {saving ? 'Guardando...' : 'Guardar'}
               </button>
