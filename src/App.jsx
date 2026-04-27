@@ -14,6 +14,7 @@ import NotificationsPage from './pages/NotificationsPage'
 import MyProjectsPage from './pages/MyProjectsPage'
 import EditProjectPage from './pages/EditProjectPage'
 import ProjectApplicationsPage from './pages/ProjectApplicationsPage'
+import StatisticsPage from './pages/StatisticsPage'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -69,6 +70,7 @@ function App() {
           <Route path="/perfil" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
           <Route path="/mensajes" element={<ProtectedRoute><MessagesPage /></ProtectedRoute>} />
           <Route path="/notificaciones" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
+          <Route path="/estadisticas" element={<StatisticsPage />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </AuthProvider>
