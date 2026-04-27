@@ -13,6 +13,7 @@ import MessagesPage from './pages/MessagesPage'
 import NotificationsPage from './pages/NotificationsPage'
 import MyProjectsPage from './pages/MyProjectsPage'
 import EditProjectPage from './pages/EditProjectPage'
+import ProjectApplicationsPage from './pages/ProjectApplicationsPage'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -61,6 +62,7 @@ function App() {
           <Route path="/proyectos/nuevo" element={<ProtectedRoute><CreateProjectPage /></ProtectedRoute>} />
           <Route path="/proyectos/:id" element={<ProtectedRoute><ProjectDetailPage /></ProtectedRoute>} />
           <Route path="/proyectos/:id/editar" element={<ProtectedRoute><EditProjectPage /></ProtectedRoute>} />
+          <Route path="/proyectos/:id/postulaciones" element={<ProtectedRoute><ProjectApplicationsPage /></ProtectedRoute>} />
           <Route path="/discusiones" element={<ProtectedRoute><DiscussionsPage /></ProtectedRoute>} />
           <Route path="/discusiones/nueva" element={<ProtectedRoute><CreateDiscussionPage /></ProtectedRoute>} />
           <Route path="/discusiones/:id" element={<ProtectedRoute><DiscussionDetailPage /></ProtectedRoute>} />

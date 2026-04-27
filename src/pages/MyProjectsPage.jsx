@@ -57,12 +57,22 @@ function ProjectCard({ project, tab, onPublish }) {
           </div>
         )}
       </div>
-      <Link
-        to={`/proyectos/${project.id}`}
-        className="ml-4 shrink-0 flex items-center gap-1 px-4 py-1.5 border border-blue-500 text-blue-600 text-xs font-medium rounded-md hover:bg-blue-50 transition-colors"
-      >
-        Ver más <span>›</span>
-      </Link>
+      <div className="ml-4 shrink-0 flex flex-col gap-1">
+        <Link
+          to={`/proyectos/${project.id}`}
+          className="flex items-center justify-center gap-1 px-4 py-1.5 border border-blue-500 text-blue-600 text-xs font-medium rounded-md hover:bg-blue-50 transition-colors text-center"
+        >
+          Ver más
+        </Link>
+        {tab === 'published' && (
+          <Link
+            to={`/proyectos/${project.id}/postulaciones`}
+            className="flex items-center justify-center px-4 py-1.5 border border-gray-300 text-gray-600 text-xs font-medium rounded-md hover:bg-gray-50 transition-colors text-center"
+          >
+            Postulaciones
+          </Link>
+        )}
+      </div>
     </div>
   )
 }
