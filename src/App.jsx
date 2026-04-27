@@ -5,6 +5,8 @@ import AuthPage from './pages/AuthPage'
 import HomePage from './pages/HomePage'
 import CreateProjectPage from './pages/CreateProjectPage'
 import ProjectDetailPage from './pages/ProjectDetailPage'
+import DiscussionsPage from './pages/DiscussionsPage'
+import CreateDiscussionPage from './pages/CreateDiscussionPage'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -51,6 +53,8 @@ function App() {
           <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
           <Route path="/proyectos/nuevo" element={<ProtectedRoute><CreateProjectPage /></ProtectedRoute>} />
           <Route path="/proyectos/:id" element={<ProtectedRoute><ProjectDetailPage /></ProtectedRoute>} />
+          <Route path="/discusiones" element={<ProtectedRoute><DiscussionsPage /></ProtectedRoute>} />
+          <Route path="/discusiones/nueva" element={<ProtectedRoute><CreateDiscussionPage /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </AuthProvider>

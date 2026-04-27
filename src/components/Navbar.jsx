@@ -28,6 +28,16 @@ export default function Navbar() {
           >
             Mis proyectos
           </NavLink>
+          <NavLink
+            to="/discusiones"
+            className={({ isActive }) =>
+              isActive
+                ? 'text-blue-600 border-b-2 border-blue-600 pb-1'
+                : 'text-gray-500 hover:text-gray-800 pb-1'
+            }
+          >
+            Discusiones
+          </NavLink>
         </nav>
       </div>
 
