@@ -88,6 +88,7 @@ function Pagination({ page, totalPages, onPage }) {
 
 export default function MyProjectsPage() {
   const [selectedTechId, setSelectedTechId] = useState(null)
+  const [tab, setTab] = useState('published')
   const [page, setPage] = useState(0)
   const [projects, setProjects] = useState(null)
   const [totalPages, setTotalPages] = useState(0)
@@ -98,7 +99,11 @@ export default function MyProjectsPage() {
     params.append('page', page)
     params.append('size', ITEMS_PER_PAGE)
 
-    api.get(`/projects/my?${params.toString()}`)
+    const endpoint = tab === 'drafts'
+      ? `/projects/my/drafts?${params.toString()}`
+      : `/projects/my?${params.toString()}`
+
+    api.get(endpoint)
       .then(data => {
         setProjects(data.content || [])
         setTotalPages(data.totalPages || 0)
@@ -106,11 +111,17 @@ export default function MyProjectsPage() {
       .catch(() => {
         setProjects([])
       })
-  }, [selectedTechId, page])
+  }, [selectedTechId, page, tab])
 
   function handleSelectTech(id) {
     setSelectedTechId(prev => (prev === id ? null : id))
     setPage(0)
+  }
+
+  function handleTabChange(newTab) {
+    setTab(newTab)
+    setPage(0)
+    setProjects(null)
   }
 
   return (
@@ -130,6 +141,29 @@ export default function MyProjectsPage() {
             </Link>
           </div>
 
+          <div className="flex gap-4 border-b border-gray-200 mb-4">
+            <button
+              onClick={() => handleTabChange('published')}
+              className={`text-sm font-medium py-2 border-b-2 transition-colors ${
+                tab === 'published'
+                  ? 'text-blue-600 border-blue-600'
+                  : 'text-gray-500 border-transparent hover:text-gray-700'
+              }`}
+            >
+              Publicados
+            </button>
+            <button
+              onClick={() => handleTabChange('drafts')}
+              className={`text-sm font-medium py-2 border-b-2 transition-colors ${
+                tab === 'drafts'
+                  ? 'text-blue-600 border-blue-600'
+                  : 'text-gray-500 border-transparent hover:text-gray-700'
+              }`}
+            >
+              Borradores
+            </button>
+          </div>
+
           <div className="bg-white rounded-xl shadow-sm px-6">
             {projects === null ? (
               <p className="py-8 text-center text-sm text-gray-400">Cargando...</p>
@@ -138,7 +172,9 @@ export default function MyProjectsPage() {
                 <ProjectCard key={project.id} project={project} />
               ))
             ) : (
-              <p className="py-8 text-center text-sm text-gray-400">No tienes proyectos aún.</p>
+              <p className="py-8 text-center text-sm text-gray-400">
+                {tab === 'drafts' ? 'No tienes borradores.' : 'No tienes proyectos publicados.'}
+              </p>
             )}
           </div>
 
