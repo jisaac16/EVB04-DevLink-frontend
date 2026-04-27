@@ -21,16 +21,6 @@ function Avatar({ name }) {
   )
 }
 
-const STATUS_LABELS = {
-  DRAFT: 'Borrador',
-  LOOKING_FOR_COLLABORATORS: 'Buscando Colaboradores',
-}
-
-const STATUS_STYLES = {
-  DRAFT: 'bg-gray-50 border-gray-300 text-gray-700',
-  LOOKING_FOR_COLLABORATORS: 'bg-yellow-50 border-yellow-300 text-yellow-700',
-}
-
 export default function ProjectDetailPage() {
   const { id } = useParams()
   const { user } = useAuth()
@@ -156,22 +146,17 @@ export default function ProjectDetailPage() {
                   {applyMessage}
                 </p>
               )}
-              <div className="flex items-start justify-between">
-                <div className="flex flex-col gap-2">
-                  <h2 className="text-lg font-bold text-gray-800">{project.title}</h2>
-                  <p className="text-sm text-gray-500">{project.description}</p>
-                  <div className="flex gap-1.5 flex-wrap">
-                    {project.technologies?.map(tech => (
-                      <TagChip key={tech.id} label={tech.name} />
-                    ))}
-                  </div>
-                  <p className="text-xs text-gray-400 mt-1">
-                    Creado por {project.creatorName}
-                  </p>
+              <div className="flex flex-col gap-2">
+                <h2 className="text-lg font-bold text-gray-800">{project.title}</h2>
+                <p className="text-sm text-gray-500">{project.description}</p>
+                <div className="flex gap-1.5 flex-wrap">
+                  {project.technologies?.map(tech => (
+                    <TagChip key={tech.id} label={tech.name} />
+                  ))}
                 </div>
-                <span className={`ml-4 shrink-0 px-3 py-1 border text-xs font-medium rounded-full ${STATUS_STYLES[project.status] || ''}`}>
-                  {STATUS_LABELS[project.status] || project.status}
-                </span>
+                <p className="text-xs text-gray-400 mt-1">
+                  Creado por {project.creatorName}
+                </p>
               </div>
 
               {activeTab === 'Detalles' && (
