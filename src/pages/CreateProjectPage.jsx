@@ -1,15 +1,14 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Sidebar from '../components/Sidebar'
-
-const TECHNOLOGIES = ['React', 'Python', 'Django', 'JavaScript', 'HTML', 'Vue.js']
+import { api } from '../services/api'
 
 function TagChip({ label, selected, onToggle }) {
   return (
     <button
       type="button"
-      onClick={() => onToggle(label)}
+      onClick={onToggle}
       className={`px-3 py-1 rounded-full text-xs border font-medium transition-colors ${
         selected
           ? 'bg-blue-600 text-white border-blue-600'
@@ -23,13 +22,18 @@ function TagChip({ label, selected, onToggle }) {
 
 export default function CreateProjectPage() {
   const navigate = useNavigate()
-  const [selectedEpica, setSelectedEpica] = useState('React')
+  const [selectedEpica, setSelectedEpica] = useState(null)
   const [form, setForm] = useState({ title: '', description: '' })
-  const [selectedTags, setSelectedTags] = useState([])
+  const [technologies, setTechnologies] = useState([])
+  const [selectedTechIds, setSelectedTechIds] = useState([])
 
-  function toggleTag(tag) {
-    setSelectedTags(prev =>
-      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
+  useEffect(() => {
+    api.get('/technologies').then(setTechnologies).catch(() => {})
+  }, [])
+
+  function toggleTech(techId) {
+    setSelectedTechIds(prev =>
+      prev.includes(techId) ? prev.filter(t => t !== techId) : [...prev, techId]
     )
   }
 
@@ -94,12 +98,12 @@ export default function CreateProjectPage() {
               </div>
 
               <div className="flex flex-wrap gap-2">
-                {TECHNOLOGIES.map(tech => (
+                {technologies.map(tech => (
                   <TagChip
-                    key={tech}
-                    label={tech}
-                    selected={selectedTags.includes(tech)}
-                    onToggle={toggleTag}
+                    key={tech.id}
+                    label={tech.name}
+                    selected={selectedTechIds.includes(tech.id)}
+                    onToggle={() => toggleTech(tech.id)}
                   />
                 ))}
               </div>
