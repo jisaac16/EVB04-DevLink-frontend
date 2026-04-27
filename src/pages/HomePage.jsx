@@ -1,28 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Sidebar from '../components/Sidebar'
-
-const PROJECTS = [
-  {
-    id: 1,
-    title: 'Proyecto para fy proyecto',
-    description: 'Este proyecto tares enors vilar rexen sistema de gestión de tarras.',
-    tags: ['React', 'Python', 'Django'],
-  },
-  {
-    id: 2,
-    title: 'Proyecto para empresarios',
-    description: 'Este proyecto para goredit un sistema de gestión de tareas.',
-    tags: ['React', 'Python', 'Django'],
-  },
-  {
-    id: 3,
-    title: 'Proyecto para empresarios',
-    description: 'Este proyecto epen enoar un sistema de gestión de tareas.',
-    tags: ['React', 'Python'],
-  },
-]
+import { api } from '../services/api'
 
 const ITEMS_PER_PAGE = 3
 
@@ -41,8 +21,8 @@ function ProjectCard({ project }) {
         <h3 className="font-semibold text-gray-800 text-sm">{project.title}</h3>
         <p className="text-xs text-gray-500">{project.description}</p>
         <div className="flex gap-1.5 flex-wrap">
-          {project.tags.map(tag => (
-            <TagChip key={tag} label={tag} />
+          {project.technologies?.map(tech => (
+            <TagChip key={tech.id} label={tech.name} />
           ))}
         </div>
       </div>
@@ -56,18 +36,18 @@ function ProjectCard({ project }) {
   )
 }
 
-function Pagination({ page, total, onPage }) {
-  const pages = Math.ceil(total / ITEMS_PER_PAGE)
+function Pagination({ page, totalPages, onPage }) {
+  if (totalPages <= 1) return null
   return (
     <div className="flex items-center justify-center gap-2 pt-4">
       <button
-        onClick={() => onPage(p => Math.max(1, p - 1))}
-        disabled={page === 1}
+        onClick={() => onPage(p => Math.max(0, p - 1))}
+        disabled={page === 0}
         className="text-gray-400 hover:text-gray-600 disabled:opacity-30 text-sm"
       >
         ‹
       </button>
-      {Array.from({ length: pages }, (_, i) => i + 1).map(n => (
+      {Array.from({ length: totalPages }, (_, i) => i).map(n => (
         <button
           key={n}
           onClick={() => onPage(n)}
@@ -77,12 +57,12 @@ function Pagination({ page, total, onPage }) {
               : 'text-gray-500 hover:bg-gray-100'
           }`}
         >
-          {n}
+          {n + 1}
         </button>
       ))}
       <button
-        onClick={() => onPage(p => Math.min(pages, p + 1))}
-        disabled={page === pages}
+        onClick={() => onPage(p => Math.min(totalPages - 1, p + 1))}
+        disabled={page === totalPages - 1}
         className="text-gray-400 hover:text-gray-600 disabled:opacity-30 text-sm"
       >
         ›
@@ -92,20 +72,69 @@ function Pagination({ page, total, onPage }) {
 }
 
 export default function HomePage() {
-  const [selectedEpica, setSelectedEpica] = useState('React')
+  const [selectedTechId, setSelectedTechId] = useState(null)
   const [search, setSearch] = useState('')
-  const [page, setPage] = useState(1)
+  const [page, setPage] = useState(0)
+  const [projects, setProjects] = useState([])
+  const [totalPages, setTotalPages] = useState(0)
+  const [loading, setLoading] = useState(true)
+  const mountedRef = useRef(true)
 
-  const filtered = PROJECTS.filter(p =>
-    p.title.toLowerCase().includes(search.toLowerCase())
-  )
-  const paginated = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE)
+  useEffect(() => {
+    return () => { mountedRef.current = false }
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+
+    const params = new URLSearchParams()
+    if (selectedTechId) params.append('technologyIds', selectedTechId)
+    params.append('page', page)
+    params.append('size', ITEMS_PER_PAGE)
+
+    api.get(`/projects?${params.toString()}`)
+      .then(data => {
+        if (!cancelled && mountedRef.current) {
+          setProjects(data.content || [])
+          setTotalPages(data.totalPages || 0)
+          setLoading(false)
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setProjects([])
+          setLoading(false)
+        }
+      })
+
+    return () => { cancelled = true }
+  }, [selectedTechId, page])
+
+  function handleSelectTech(id) {
+    setSelectedTechId(prev => (prev === id ? null : id))
+    setPage(0)
+    setLoading(true)
+  }
+
+  function handleSearchChange(e) {
+    setSearch(e.target.value)
+    setPage(0)
+  }
+
+  function handlePageChange(fn) {
+    setPage(fn)
+    setLoading(true)
+  }
+
+  const filtered = search
+    ? projects.filter(p => p.title.toLowerCase().includes(search.toLowerCase()))
+    : projects
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
       <div className="flex flex-1 max-w-5xl mx-auto w-full px-6 py-8 gap-8">
-        <Sidebar selected={selectedEpica} onSelect={setSelectedEpica} />
+        <Sidebar selected={selectedTechId} onSelect={handleSelectTech} />
 
         <main className="flex-1">
           <div className="flex items-center justify-between mb-4">
@@ -114,14 +143,16 @@ export default function HomePage() {
               type="text"
               placeholder="Buscar..."
               value={search}
-              onChange={e => { setSearch(e.target.value); setPage(1) }}
+              onChange={handleSearchChange}
               className="border border-gray-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-48"
             />
           </div>
 
           <div className="bg-white rounded-xl shadow-sm px-6">
-            {paginated.length > 0 ? (
-              paginated.map(project => (
+            {loading ? (
+              <p className="py-8 text-center text-sm text-gray-400">Cargando...</p>
+            ) : filtered.length > 0 ? (
+              filtered.map(project => (
                 <ProjectCard key={project.id} project={project} />
               ))
             ) : (
@@ -129,7 +160,7 @@ export default function HomePage() {
             )}
           </div>
 
-          <Pagination page={page} total={filtered.length} onPage={setPage} />
+          <Pagination page={page} totalPages={totalPages} onPage={handlePageChange} />
         </main>
       </div>
     </div>
