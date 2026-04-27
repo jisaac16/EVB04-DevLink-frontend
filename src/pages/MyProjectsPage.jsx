@@ -24,10 +24,10 @@ function TagChip({ label }) {
   )
 }
 
-function ProjectCard({ project }) {
+function ProjectCard({ project, tab, onPublish }) {
   return (
     <div className="flex items-start justify-between py-4 border-b border-gray-100 last:border-0">
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2 flex-1">
         <div className="flex items-center gap-2">
           <h3 className="font-semibold text-gray-800 text-sm">{project.title}</h3>
           <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_STYLES[project.status] || ''}`}>
@@ -40,6 +40,22 @@ function ProjectCard({ project }) {
             <TagChip key={tech.id} label={tech.name} />
           ))}
         </div>
+        {tab === 'drafts' && (
+          <div className="flex gap-2 mt-1">
+            <Link
+              to={`/proyectos/${project.id}/editar`}
+              className="px-3 py-1 border border-gray-300 text-gray-600 text-xs font-medium rounded-md hover:bg-gray-50 transition-colors"
+            >
+              Editar
+            </Link>
+            <button
+              onClick={() => onPublish(project.id)}
+              className="px-3 py-1 bg-blue-600 text-white text-xs font-medium rounded-md hover:bg-blue-700 transition-colors"
+            >
+              Publicar
+            </button>
+          </div>
+        )}
       </div>
       <Link
         to={`/proyectos/${project.id}`}
@@ -124,6 +140,15 @@ export default function MyProjectsPage() {
     setProjects(null)
   }
 
+  async function handlePublish(projectId) {
+    try {
+      await api.put(`/projects/${projectId}/publish`)
+      setProjects(prev => prev.filter(p => p.id !== projectId))
+    } catch (err) {
+      alert(err.message || 'Error al publicar')
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
@@ -169,7 +194,7 @@ export default function MyProjectsPage() {
               <p className="py-8 text-center text-sm text-gray-400">Cargando...</p>
             ) : projects.length > 0 ? (
               projects.map(project => (
-                <ProjectCard key={project.id} project={project} />
+                <ProjectCard key={project.id} project={project} tab={tab} onPublish={handlePublish} />
               ))
             ) : (
               <p className="py-8 text-center text-sm text-gray-400">
