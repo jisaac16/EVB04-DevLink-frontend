@@ -97,14 +97,14 @@ export default function HomePage() {
         if (!cancelled && mountedRef.current) {
           setProjects(data.content || [])
           setTotalPages(data.totalPages || 0)
-          setLoading(false)
         }
       })
-      .catch(() => {
-        if (!cancelled) {
-          setProjects([])
-          setLoading(false)
-        }
+      .catch(err => {
+        console.error('Error al cargar proyectos:', err)
+        if (!cancelled) setProjects([])
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
       })
 
     return () => { cancelled = true }
