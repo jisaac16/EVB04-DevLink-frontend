@@ -8,11 +8,12 @@ const ITEMS_PER_PAGE = 10
 
 function DiscussionCard({ discussion }) {
   return (
-    <div className="flex items-start justify-between py-4 border-b border-gray-100 last:border-0">
+    <Link
+      to={`/discusiones/${discussion.id}`}
+      className="flex items-start justify-between py-4 border-b border-gray-100 last:border-0 hover:bg-gray-50 -mx-6 px-6 transition-colors block"
+    >
       <div className="flex flex-col gap-2">
-        <Link to={`/discusiones/${discussion.id}`} className="font-semibold text-gray-800 text-sm hover:text-blue-600">
-          {discussion.title}
-        </Link>
+        <h3 className="font-semibold text-gray-800 text-sm">{discussion.title}</h3>
         <p className="text-xs text-gray-500 line-clamp-2">{discussion.content}</p>
         <div className="flex items-center gap-3 text-xs text-gray-400">
           <span>{discussion.authorName}</span>
@@ -27,7 +28,7 @@ function DiscussionCard({ discussion }) {
           ))}
         </div>
       </div>
-    </div>
+    </Link>
   )
 }
 
